@@ -1,0 +1,9 @@
+{
+  "rules": {
+    "no-console": 0,
+    "import/no-extraneous-dependencies": 0,
+    "generator-star-spacing": 0,
+    "babel/generator-star-spacing": 1,
+    "global-require":0
+  }
+}
