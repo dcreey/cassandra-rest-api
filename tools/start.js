@@ -7,13 +7,12 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-import webpack from 'webpack';
 import Promise from 'bluebird';
 import run from './run';
 import runServer from './runServer';
-import webpackConfig from './webpack.config';
 import clean from './clean';
 import copy from './copy';
+import watch from './watch';
 
 /**
  * Launches a development web server with "live reload" functionality -
@@ -21,38 +20,14 @@ import copy from './copy';
  */
 async function start() {
   await run(clean);
-  await run(copy.bind(undefined, { watch: true }));
-  await new Promise(resolve => {
-    // Patch the client-side bundle configurations
-    // to enable Hot Module Replacement (HMR) and React Transform
-    webpackConfig.filter(x => x.target !== 'node').forEach(config => {
-      // config.plugins.push(new webpack.NoErrorsPlugin());
-      config
-        .module
-        .loaders
-        .filter(x => x.loader === 'babel-loader');
-    });
-
-    const bundler = webpack(webpackConfig);
-
-    let handleServerBundleComplete = () => {
-      console.log('Bundle Complete');
-      runServer((err) => {
-        console.log('Run Complete');
-        if (!err) {
-          handleServerBundleComplete = runServer;
-          return resolve();
-        } else {
-          console.log(err);
-          return resolve();
-        }
-      });
-    };
-
-    bundler.run((err, stats) => { handleServerBundleComplete(); })
-      // .plugin('done', () => handleServerBundleComplete());
-    console.log('Await bundler');
-  });
+  await run(copy);
+  await run(watch.bind(undefined, { onRebuild: () => {
+    runServer(runServer((err, host) => {
+      if (!err) {
+        console.log(`Server Running with host ${host}`);
+      }
+    }));
+  } }));
 }
 
 export default start;

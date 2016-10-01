@@ -8,7 +8,7 @@
 const assert = require('assert');
 const Promise = require('bluebird');
 const types = require('cassandra-driver').types;
-const contactModel = require('./contact');
+const contactModel = require('../models/contact');
 
 const contacts = [
   { id: '111', first_name: 'first', last_name: 'first', email: 'jamesF@cql.com', phone: '9998883333' },

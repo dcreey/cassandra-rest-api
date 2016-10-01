@@ -7,21 +7,22 @@
  * LICENSE.txt file in the root directory of this source tree.
  */
 
-import webpack from 'webpack';
 import Promise from 'bluebird';
-import webpackConfig from './webpack.config';
+import cp from 'child_process';
+
+const exec = cp.exec;
+const cmd = 'babel -d build src';
 
 /**
  * Creates application bundles from the source files.
  */
 function bundle() {
   return new Promise((resolve, reject) => {
-    webpack(webpackConfig).run((err, stats) => {
-      if (err) {
-        return reject(err);
-      }
-      console.log(stats.toString(webpackConfig[0].stats));
-      return resolve();
+    exec(cmd, (error, stdout, stderr) => {
+      // command output is in stdout
+      if (error) reject(error);
+      else if (stderr) reject(stderr);
+      else resolve(stdout);
     });
   });
 }

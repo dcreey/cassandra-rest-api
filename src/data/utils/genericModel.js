@@ -1,43 +1,25 @@
+/**
+ * Created by dcreey on 9/30/2016.
+ */
 /* eslint-disable no-use-before-define */
 
-const Promise = require('bluebird');
+import Promise from 'bluebird';
 
-function parsePhoneNumber(number) {
-  const num = number.trim()
-    .replace(' ', '')
-    .replace('-', '')
-    .replace('(', '')
-    .replace(')', '');
-  return parseInt(num, 10);
-}
-
-function dataModeler(client, dataTypes) {
-  return class ModelBuilder {
-    constructor(modelName, properties) {
-      this.modelName = modelName;
-      this.properties = properties;
-      this.queries = {
-        getAllQuery: `SELECT * FROM ${modelName.toLowerCase()}`,
-        getAllQueryParam: `SELECT * FROM ${modelName.toLowerCase()} WHERE {0}`,
-        getQuery: `SELECT * FROM ${modelName.toLowerCase()} WHERE id=?`,
-        updateQuery: `UPDATE ${modelName.toLowerCase()} SET {0} WHERE id=?`,
-        deleteQuery: `DELETE FROM ${modelName.toLowerCase()} WHERE id=?`,
-        createQuery: `INSERT INTO ${modelName.toLowerCase()} ({0}) VALUES ({1})`,
-      };
-    }
-
-    getModel = function () {
-      return getGenericModel(this.modelName, this.queries, this.properties, client, dataTypes);
-    }
-  };
-}
-
-function getGenericModel(modelName, queries, properties, client, dataTypes) {
+function createGenericModel(modelName, queries, properties, client, dataTypes) {
   class Model {
     constructor(entity) {
-      properties.forEach(x => {
-        this[x.name] = entity ? entity[x.name] || '' : '';
-      });
+      // convert passed entity to js object
+      if (entity) {
+        properties.forEach(x => {
+          if ({}.hasOwnProperty.call(entity, x.name)) {
+            // pass property through
+            this[x.name] = entity[x.name] || '';
+          } else if ({}.hasOwnProperty.call(entity, x.dbColumnName)) {
+            // convert db object to js object
+            this[x.name] = entity[x.dbColumnName] || '';
+          }
+        });
+      }
     }
 
     // static methods
@@ -134,8 +116,9 @@ function getGenericModel(modelName, queries, properties, client, dataTypes) {
           rej(err);
         } else if (!result) {
           res(null);
+        } else if (result.rows.length === 0) {
+          res(null);
         } else {
-          console.info(`Returning ${result.rows.length} ${modelName}s`);
           res(result.rows.map(x => new Model(x)));
         }
       });
@@ -147,10 +130,11 @@ function getGenericModel(modelName, queries, properties, client, dataTypes) {
       client.execute(queries.getQuery, [id], (err, result) => {
         if (err) {
           rej(err);
+        } else if (!result) {
+          res(null);
         } else if (result.rows.length === 0) {
           res(null);
         } else {
-          console.log(`Got ${modelName} with id ${result.rows[0].id}`);
           res(new Model(result.rows[0]));
         }
       });
@@ -208,6 +192,16 @@ function getGenericModel(modelName, queries, properties, client, dataTypes) {
       });
     });
   }
+  return Model;
 }
 
-export default dataModeler;
+function parsePhoneNumber(number) {
+  const num = number.trim()
+    .replace(' ', '')
+    .replace('-', '')
+    .replace('(', '')
+    .replace(')', '');
+  return parseInt(num, 10);
+}
+
+export default createGenericModel;

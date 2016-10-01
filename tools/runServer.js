@@ -9,13 +9,13 @@
 
 import path from 'path';
 import cp from 'child_process';
-import webpackConfig from './webpack.config';
+import serverConfig from './server.config';
 
 // Should match the text string used in `src/server.js/server.listen(...)`
 const RUNNING_REGEXP = /The server is running at http:\/\/(.*?)\//;
 
 let server;
-const { output } = webpackConfig.find(x => x.target === 'node');
+const { output } = serverConfig.find(x => x.target === 'node');
 const serverPath = path.join(output.path, output.filename);
 
 // Launch or restart the Node.js server
@@ -47,7 +47,6 @@ function runServer(cb) {
 
   server.stdout.on('data', onStdOut);
   server.stderr.on('data', x => process.stderr.write(x));
-  console.log('Run Server Complete');
 }
 
 process.on('exit', () => {
