@@ -10,8 +10,7 @@
 import Promise from 'bluebird';
 import run from './run';
 import runServer from './runServer';
-import clean from './clean';
-import copy from './copy';
+import build from './build';
 import watch from './watch';
 
 /**
@@ -19,8 +18,7 @@ import watch from './watch';
  * synchronizing URLs, interactions and code changes across multiple devices.
  */
 async function start() {
-  await run(clean);
-  await run(copy);
+  await run(build);
   await run(watch.bind(undefined, { onRebuild: () => {
     runServer(runServer((err, host) => {
       if (!err) {

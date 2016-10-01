@@ -22,12 +22,22 @@ async function copy() {
   ]);
 
   replace({
-    regex: '"start".*',
-    replacement: '"start": "node server.js"',
+    regex: 'scripts: {*}',
+    replacement: 'scripts: { ' +
+        '"start": "node server.js" ' +
+      '}',
     paths: ['build/package.json'],
     recursive: false,
     silent: false,
   });
+
+  //replace({
+  //  regex: '"start".*',
+  //  replacement: '"start": "node server.js"',
+  //  paths: ['build/package.json'],
+  //  recursive: false,
+  //  silent: false,
+  //});
 }
 
 export default copy;

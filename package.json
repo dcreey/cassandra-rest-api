@@ -12,7 +12,8 @@
     "deploy": "babel-node tools/run deploy",
     "start": "babel-node tools/run start",
     "startserver": "babel-node tools/runServer",
-    "test": "build/server.test"
+    "test": "build/server.test",
+    "watch": "babel-node tools/run watch"
   },
   "author": "",
   "license": "ISC",

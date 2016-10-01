@@ -7,5 +7,21 @@
     "add-module-exports",
     "transform-runtime"
   ],
-  "sourceMaps": "both"
+  "filenameRelative": "./log/babel.error",
+  "env": {
+    "production": {
+      "sourceMaps": false,
+      "minified": true,
+      "comments": false,
+      "compact": true,
+      "ignore": [
+        "*.spec.js"
+      ]
+    },
+    "development": {
+      "sourceMaps": "inline",
+      "minified": false,
+      "comments": true,
+    }
+  }
 }

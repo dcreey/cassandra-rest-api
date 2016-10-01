@@ -13,8 +13,8 @@ const DEBUG = !process.argv.includes('--release');
 const VERBOSE = process.argv.includes('--verbose');
 
 process.env.NODE_ENV = DEBUG ? 'development' : 'production';
-__DEV__ = DEBUG;
-
+process.env.BABEL_ENV = DEBUG ? 'development' : 'production';
+console.log(process.env.BABEL_ENV);
 //
 // Common configuration chunk to be used for both
 // server-side (server.js) bundles
@@ -62,7 +62,6 @@ const serverConfig = extend(true, {}, config, {
     __filename: false,
     __dirname: false,
   },
-  includeSourceMap: DEBUG ? 'source-map' : false,
 });
 
 //

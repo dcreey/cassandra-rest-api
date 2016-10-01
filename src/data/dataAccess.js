@@ -14,13 +14,6 @@ const ModelBuilder = createModelBuilder(client, cassandra.types);
 // build database access object
 const dataAccess = { cassandraClient: client };
 
-// const req = require.context('./models', true, /^((?!\.spec).)*(.js)$/);
-// req.keys().forEach((key) => {
-//  const modelName = path.basename(key, '.js');
-//  const model = req(key);
-//  dataAccess[modelName] = model(client, cassandra.types, ModelBuilder);
-// });
-
 fs
   .readdirSync(path.join(__dirname, 'models'))
   .filter((file) => (file.indexOf('.') !== 0) && (file.indexOf('spec') === -1))
