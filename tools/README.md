@@ -1,20 +1,18 @@
 ## Build Automation Tools
 
+Based on the React-Starter-Kit tools. Removed webpack and all other front-end dependencies - use babel and gaze for transpiling and watching/rebuilding. 
+
 ##### `npm start` (`start.js`)
 
-* Cleans up the output `/build` directory (`clean.js`)
-* Copies static files to the output folder (`copy.js`)
-* Launches [Webpack](https://webpack.github.io/) compiler in a watch mode (via [webpack-middleware](https://github.com/kriasoft/webpack-middleware))
+* Re-builds the output `/build` directory (`build.js`)
+* Runs file watcher which re-transpiles and starts server (`watch.js`)
 * Launches Node.js server from the compiled output folder (`runServer.js`)
-* Launches [Browsersync](https://browsersync.io/),
-  [HMR](https://webpack.github.io/docs/hot-module-replacement), and
-  [React Transform](https://github.com/gaearon/babel-plugin-react-transform)
 
 ##### `npm run build` (`build.js`)
 
 * Cleans up the output `/build` folder (`clean.js`)
 * Copies static files to the output folder (`copy.js`)
-* Creates application bundles with Webpack (`bundle.js`, `webpack.config.js`)
+* Transpiles application files with babel (`bundle.js`)
 
 ##### `npm run deploy` (`deploy.js`)
 
@@ -42,6 +40,6 @@ $ npm start -- --release                 # Launch dev server in production mode
 
 #### Misc
 
-* `webpack.config.js` - Webpack configuration for both client-side and server-side bundles
+* `server.config.js` - Server configuration for server-side code
 * `run.js` - Helps to launch other scripts with `babel-node` (e.g. `babel-node tools/run build`)
 * `.eslintrc` - ESLint overrides for built automation scripts
