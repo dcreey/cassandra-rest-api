@@ -9,17 +9,17 @@
 
 import Promise from 'bluebird';
 import cp from 'child_process';
-import path from 'path';
+// import path from 'path';
 import serverConfig from './server.config';
 
 const config = serverConfig.find(x => x.target === 'node');
 const exec = cp.exec;
-let cmd = `babel src -d ${config.output.path}`;
+const cmd = `babel src -d ${config.output.path}`;
 
-if (!config.debug) {
-  const compiledPath = path.join(config.output.path, config.output.filename);
-  cmd = `babel src -o ${compiledPath}`;
-}
+// if (!config.debug) {
+//  const compiledPath = path.join(config.output.path, config.output.filename);
+//  cmd = `babel src -o ${compiledPath}`;
+// }
 
 /**
  * Creates application bundles from the source files.

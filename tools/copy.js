@@ -9,7 +9,9 @@
 
 import replace from 'replace';
 import Promise from 'bluebird';
+import serverConfig from './server.config';
 
+const config = serverConfig.find(x => x.target === 'node');
 /**
  * Copies static files such as robots.txt, favicon.ico to the
  * output (build) folder.
@@ -21,23 +23,27 @@ async function copy() {
     ncp('package.json', 'build/package.json'),
   ]);
 
-  replace({
-    regex: 'scripts: {*}',
-    replacement: 'scripts: { ' +
-        '"start": "node server.js" ' +
+  if (!config.debug) {
+    // production script only includes start
+    replace({
+      regex: /("scripts": {)([^}]*)}/g,
+      replacement: '"scripts": { ' +
+      '"start": "node server.js" ' +
       '}',
-    paths: ['build/package.json'],
-    recursive: false,
-    silent: false,
-  });
-
-  //replace({
-  //  regex: '"start".*',
-  //  replacement: '"start": "node server.js"',
-  //  paths: ['build/package.json'],
-  //  recursive: false,
-  //  silent: false,
-  //});
+      paths: ['build/package.json'],
+      recursive: false,
+      silent: false,
+    });
+  } else {
+    // else include all scripts but overwrite start
+    replace({
+      regex: '"start".*',
+      replacement: '"start": "node server.js"',
+      paths: ['build/package.json'],
+      recursive: false,
+      silent: false,
+    });
+  }
 }
 
 export default copy;

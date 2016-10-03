@@ -3,20 +3,31 @@
  */
 /* eslint-disable prefer-arrow-callback */
 
+
+
+
+//////////////
+//////////////
+//////////////
+
+
+
 const assert = require('assert');
 const cassandra = require('cassandra-driver');
 const createGenericModel = require('../utils/genericModel');
-
-const genericModelService = {
-  getAllEntities: () => null,
-  getEntity: () => null,
-  updateEntity: () => null,
-  deleteEntity: () => null,
-  createEntity: () => null,
-}
+const genericModelService = require('../utils/genericModelService');
 
 const modelName = 'MockEntity';
+const queries = {
+  getAllQuery: `SELECT * FROM ${modelName.toLowerCase()}`,
+  getAllQueryParam: `SELECT * FROM ${modelName.toLowerCase()} WHERE {0}`,
+  getQuery: `SELECT * FROM ${modelName.toLowerCase()} WHERE id=?`,
+  updateQuery: `UPDATE ${modelName.toLowerCase()} SET {0} WHERE id=?`,
+  deleteQuery: `DELETE FROM ${modelName.toLowerCase()} WHERE id=?`,
+  createQuery: `INSERT INTO ${modelName.toLowerCase()} ({0}) VALUES ({1})`,
+};
 const types = cassandra.types;
+const client = { execute: (query, values, cb) => {} };
 const properties = [
   { name: 'id', dbColumnName: 'id', type: types.timeuuid },
   { name: 'companyName', dbColumnName: 'company_name', type: types.string },
@@ -35,8 +46,8 @@ const dbEntities = {
 describe('test generic model class with mock entity', function () {
   describe('test getAll mock entities', function () {
     it('Should return list of entities and map to js model', function (done) {
-      genericModelService.getAllEntities = () => new Promise((res) => { res(dbEntities.rows); });
-      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      client.execute = (query, values, cb) => { cb(null, dbEntities); };
+      const MockEntity = createGenericModel(modelName, queries, properties, client, types);
       MockEntity.getAll().then((results) => {
         assert.ok(results);
         results.forEach((x, i) => assert.deepEqual(x.toJson(), entities[i]));
@@ -44,35 +55,24 @@ describe('test generic model class with mock entity', function () {
       });
     });
     it('Should return null when no contacts found', function (done) {
-      genericModelService.getAllEntities = () => new Promise((res) => { res(null); });
-      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      client.execute = (query, values, cb) => { cb(null, null); };
+      const MockEntity = createGenericModel(modelName, queries, properties, client, types);
       MockEntity.getAll().then((results) => {
         assert.ok(results == null);
         done();
       });
     });
     it('Should return list of json entities', function (done) {
-      genericModelService.getAllEntities = () => new Promise((res) => { res(dbEntities.rows); });
-      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      client.execute = (query, values, cb) => { cb(null, dbEntities); };
+      const MockEntity = createGenericModel(modelName, queries, properties, client, types);
       MockEntity.getAllJson().then((results) => {
         assert.ok(results);
         results.forEach((x, i) => assert.deepEqual(x, entities[i]));
         done();
       });
     });
-    it('Should return null when no contacts found', function (done) {
-      genericModelService.getAllEntities = () => new Promise((res) => { res(null); });
-      const MockEntity = createGenericModel(modelName, properties, genericModelService);
-      MockEntity.getAllJson().then((results) => {
-        assert.ok(results == null);
-        done();
-      });
-    });
   });
 
-  //////////////
-  //////////////
-  //////////////
   describe('test get mock entity by id', function () {
     it('Should return entity and map to js model', function (done) {
       client.execute = (query, values, cb) => { cb(null, { rows: [dbEntities.rows[0]] }); };

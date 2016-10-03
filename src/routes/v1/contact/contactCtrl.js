@@ -19,7 +19,7 @@ function errorHandler(next, err) {
 module.exports = function contactCtrl(dataAccess) {
   return {
     getAll(req, res, next) {
-      dataAccess.contact.getAll().then((contacts) => {
+      dataAccess.Contact.getAll().then((contacts) => {
         if (contacts.length === 0) {
           sendNullResponse(res, 'No contacts matching parameters');
         } else {
@@ -28,18 +28,18 @@ module.exports = function contactCtrl(dataAccess) {
       }).catch((e) => { errorHandler(next, e); });
     },
     createContact(req, res, next) {
-      dataAccess.contact.getById(req.params.contact_id).then((contact) => {
+      dataAccess.Contact.getById(req.params.contact_id).then((contact) => {
         if (contact) {
           sendConflictResponse(res, 'Contact already exists');
         } else {
-          dataAccess.contact.create(req.body).then((createdContact) => {
+          dataAccess.Contact.create(req.body).then((createdContact) => {
             sendResponse(res, createdContact);
           });
         }
       }).catch((e) => { errorHandler(next, e); });
     },
     getContact(req, res, next) {
-      dataAccess.contact.getById(req.params.contact_id).then((contact) => {
+      dataAccess.Contact.getById(req.params.contact_id).then((contact) => {
         if (!contact) {
           sendNullResponse(res, 'Contact does not exist');
         } else {
@@ -48,11 +48,11 @@ module.exports = function contactCtrl(dataAccess) {
       }).catch((e) => { errorHandler(next, e); });
     },
     updateContact(req, res, next) {
-      dataAccess.contact.getById(req.params.contact_id).then((contact) => {
+      dataAccess.Contact.getById(req.params.contact_id).then((contact) => {
         if (!contact) {
           sendNullResponse(res, 'Contact does not exist');
         } else {
-          dataAccess.contact.updateById(contact.id, contact).then((updatedContact) => {
+          dataAccess.Contact.updateById(contact.id, contact).then((updatedContact) => {
             sendResponse(res, updatedContact);
           });
         }
@@ -60,11 +60,11 @@ module.exports = function contactCtrl(dataAccess) {
     },
 
     deleteContact(req, res, next) {
-      dataAccess.contact.getById(req.params.contact_id).then((contact) => {
+      dataAccess.Contact.getById(req.params.contact_id).then((contact) => {
         if (!contact) {
           sendNullResponse(res, 'Contact does not exist');
         } else {
-          dataAccess.contact.deleteById(req.params.contact_id).then(() => {
+          dataAccess.Contact.deleteById(req.params.contact_id).then(() => {
             sendResponse(res, { message: 'success' });
           });
         }

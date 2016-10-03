@@ -15,13 +15,13 @@ function format(time) {
 }
 
 // use gaze to rebuild watched files
-async function watch({ onRebuild } = {}) {
+async function watch({ cb } = {}) {
   const watcher = await new Promise((resolve, reject) => {
     gaze('src/**/*.*', (err, val) => err ? reject(err) : resolve(val));
   });
   watcher.on('changed', async (file) => {
     const start = new Date();
-    console.log(`[${format(start)}] Starting '${file}'...`);
+    console.log(`[${format(start)}] Starting Transpiling '${file}'...`);
     const relPath = file.substr(path.join(__dirname, '../src/').length);
     const cmd = `babel src/${relPath} -o build/${relPath}`;
     const isTestFile = file.indexOf('spec') > -1;
@@ -34,13 +34,13 @@ async function watch({ onRebuild } = {}) {
           const end = new Date();
           const time = end.getTime() - start.getTime();
           console.log(`[${format(end)}] Finished Transpiling '${file}' after ${time} ms`);
-          if (!isTestFile && onRebuild) onRebuild();
+          if (!isTestFile && cb) cb();
           resolve(stdout);
         }
       });
     });
   });
-  if (onRebuild) onRebuild();
+  if (cb) cb();
 }
 
 export default watch;

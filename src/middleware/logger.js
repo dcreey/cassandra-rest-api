@@ -4,67 +4,47 @@
 import winston from 'winston';
 import expressWinston from 'express-winston';
 
+winston.transports.DailyRotateFile = require('winston-daily-rotate-file');
+
 const fs = require('fs');
 
 const env = process.env.NODE_ENV || 'development';
 const logDir = 'log';
 const logLevel = env === 'development' ? 'verbose' : 'info';
 
-//winston.emitErrs = true;
-
 // Create the log directory if it does not exist
 if (!fs.existsSync(logDir)) {
   fs.mkdirSync(logDir);
 }
 
-const tsFormat = () => (new Date()).toLocaleTimeString();
-
-//const logger = new (winston.Logger)({
-//  transports: [
-//    // colorize the output to the console
-//    new (winston.transports.Console)({
-//      timestamp: tsFormat,
-//      colorize: true,
-//      level: logLevel,
-//    }),
-//    new (require('winston-daily-rotate-file'))({ // eslint-disable-line global-require
-//      filename: `${logDir}/-results.log`,
-//      timestamp: tsFormat,
-//      datePattern: 'yyyy-MM-dd',
-//      prepend: true,
-//      level: logLevel,
-//    }),
-//  ],
-//});
-//
-//logger.debug('Debugging info');
-//logger.verbose('Verbose info');
-//logger.info('Hello world');
-//logger.warn('Warning message');
-//logger.error('Error info');
-//
-//module.exports = logger;
-//module.exports.stream = {
-//  write(message, encoding) {
-//    logger.info(message);
-//  },
-//};
+// const tsFormat = () => (new Date()).toLocaleTimeString();
 
 const logger = {};
 
 logger.routeLogger = expressWinston.logger({
   transports: [
+    new winston.transports.DailyRotateFile({
+      name: 'file',
+      datePattern: 'yyyy-MM-dd',
+      colorize: true,
+      json: true,
+      filename: `${logDir}/-results.log`,
+      maxsize: 50 * 1024 * 1024,
+      maxFiles: 10,
+      zippedArchive: true,
+      prepend: true,
+    }),
     new winston.transports.Console({
       json: true,
       colorize: true,
     }),
-    new (require('winston-daily-rotate-file'))({ // eslint-disable-line global-require
-      filename: `${logDir}/-results.log`,
-      timestamp: tsFormat,
-      datePattern: 'yyyy-MM-dd',
-      prepend: true,
-      level: logLevel,
-    }),
+    // new (require('winston-daily-rotate-file'))({ // eslint-disable-line global-require
+    //  filename: `${logDir}/-results.log`,
+    //  timestamp: tsFormat,
+    //  datePattern: 'yyyy-MM-dd',
+    //  prepend: true,
+    //  level: logLevel,
+    // }),
   ],
   meta: true, // control whether you want to log the meta data about the request
   msg: 'HTTP {{res.statusCode}} {{req.method}} {{req.url}}', // {{res.responseTime}}ms
@@ -75,17 +55,28 @@ logger.routeLogger = expressWinston.logger({
 
 logger.errorLogger = expressWinston.errorLogger({
   transports: [
+    new winston.transports.DailyRotateFile({
+      name: 'file',
+      datePattern: 'yyyy-MM-dd',
+      colorize: true,
+      json: true,
+      filename: `${logDir}/-errors.log`,
+      maxsize: 50 * 1024 * 1024,
+      maxFiles: 10,
+      zippedArchive: true,
+      prepend: true,
+    }),
     new winston.transports.Console({
       json: true,
       colorize: true,
     }),
-    new (require('winston-daily-rotate-file'))({ // eslint-disable-line global-require
-      filename: `${logDir}/-results.log`,
-      timestamp: tsFormat,
-      datePattern: 'yyyy-MM-dd',
-      prepend: true,
-      level: logLevel,
-    }),
+    // new (require('winston-daily-rotate-file'))({ // eslint-disable-line global-require
+    //  filename: `${logDir}/-results.log`,
+    //  timestamp: tsFormat,
+    //  datePattern: 'yyyy-MM-dd',
+    //  prepend: true,
+    //  level: logLevel,
+    // }),
   ],
 })
 

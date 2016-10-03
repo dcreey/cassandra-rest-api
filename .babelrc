@@ -12,7 +12,7 @@
     "production": {
       "sourceMaps": false,
       "minified": true,
-      "comments": false,
+      "comments": true,
       "compact": true,
       "ignore": [
         "*.spec.js"

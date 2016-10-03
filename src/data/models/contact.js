@@ -8,7 +8,7 @@ const queries = {
   getByEmailQuery: 'SELECT * FROM contact WHERE email=?',
 };
 
-function ContactModel(client, dataTypes, ModelBuilder) {
+function contactModel(client, dataTypes, ModelBuilder) {
   const properties = [
     { name: 'id', dbColumnName: 'id', type: dataTypes.timeuuid },
     { name: 'firstName', dbColumnName: 'first_name', type: dataTypes.string },
@@ -42,4 +42,4 @@ function ContactModel(client, dataTypes, ModelBuilder) {
   return Contact;
 }
 
-export default ContactModel;
+export default contactModel;

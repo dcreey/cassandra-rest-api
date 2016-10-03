@@ -33,7 +33,7 @@ const res = {
 describe('Contact Controller Tests', function () {
   describe('Get All Contacts Tests', function () {
     it('should get a list of contacts', (done) => {
-      db.contact.prototype.getAll = () => contacts;
+      db.Contact.prototype.getAll = () => contacts;
       res.json = (json) => {
         assert(json === contacts);
         done();
@@ -42,7 +42,7 @@ describe('Contact Controller Tests', function () {
     });
 
     it('should return 404 when no contacts found', (done) => {
-      db.contact.prototype.getAll = () => null;
+      db.Contact.prototype.getAll = () => null;
       res.status = (status) => {
         assert(status === 404);
         return { json: () => done() };
@@ -53,8 +53,8 @@ describe('Contact Controller Tests', function () {
 
   describe('Insert contact tests', function () {
     it('should insert a contact', (done) => {
-      db.contact.prototype.getById = () => null;
-      db.contact.prototype.create = () => contacts[2];
+      db.Contact.prototype.getById = () => null;
+      db.Contact.prototype.create = () => contacts[2];
       res.json = (json) => {
         assert(json === contacts[2]);
         done();
@@ -63,7 +63,7 @@ describe('Contact Controller Tests', function () {
     });
 
     it('should return conflict status when contact exists', (done) => {
-      db.contact.prototype.getById = () => contacts[2];
+      db.Contact.prototype.getById = () => contacts[2];
       res.status = (code) => {
         assert(code === 409);
         return { json: () => done() };
@@ -78,7 +78,7 @@ describe('Contact Controller Tests', function () {
         assert(json === contacts[0]);
         done();
       };
-      db.contact.prototype.getById = () => contacts[0];
+      db.Contact.prototype.getById = () => contacts[0];
       contactCtrl(db).getContact(req, res, null);
     });
 
@@ -87,15 +87,15 @@ describe('Contact Controller Tests', function () {
         assert(code === 404);
         return { json: () => done() };
       };
-      db.contact.prototype.getById = () => null;
+      db.Contact.prototype.getById = () => null;
       contactCtrl(db).getContact(req, res, null);
     });
   });
 
   describe('Update contact tests', function () {
     it('should update a specific contact', (done) => {
-      db.contact.prototype.getById = () => contacts[0];
-      db.contact.prototype.updateById = () => contacts[0];
+      db.Contact.prototype.getById = () => contacts[0];
+      db.Contact.prototype.updateById = () => contacts[0];
       res.json = (json) => {
         assert(json === contacts[0]);
         done();
@@ -104,7 +104,7 @@ describe('Contact Controller Tests', function () {
     });
 
     it('should return 404 when contact does not exist', (done) => {
-      db.contact.prototype.getById = () => null;
+      db.Contact.prototype.getById = () => null;
       res.status = (code) => {
         assert(code === 404);
         return { json: () => done() };
@@ -115,8 +115,8 @@ describe('Contact Controller Tests', function () {
 
   describe('Delete contact tests', function () {
     it('should delete a contact', (done) => {
-      db.contact.prototype.getById = () => contacts[0];
-      db.contact.prototype.deleteById = () => contacts[0];
+      db.Contact.prototype.getById = () => contacts[0];
+      db.Contact.prototype.deleteById = () => contacts[0];
       res.json = (json) => {
         assert(json.message === 'success');
         done();
@@ -125,7 +125,7 @@ describe('Contact Controller Tests', function () {
     });
 
     it('should return 404 when contact does not exist', (done) => {
-      db.contact.prototype.getById = () => null;
+      db.Contact.prototype.getById = () => null;
       res.status = (code) => {
         assert(code === 404);
         return { json: () => done() };
