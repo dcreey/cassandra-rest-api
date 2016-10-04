@@ -3,17 +3,25 @@
  */
 /* eslint-disable no-use-before-define */
 
-function genericModelService(client, dataTypes, properties, queries) {
-  function getAllEntities(searchParameters) {
-    let query = queries.getAllQuery;
+class GenericModelService {
+  constructor(client, dataTypes, properties, queries) {
+    this.client = client;
+    this.dataTypes = dataTypes;
+    this.properties = properties;
+    this.queries = queries;
+  }
+
+  // class methods
+  getAllEntities(searchParameters) {
+    let query = this.queries.getAllQuery;
     let values = [];
     if (searchParameters) {
-      const queryObject = buildQueryObject(searchParameters, properties, dataTypes);
-      query = queries.getAllQueryParam.replace('{0}', queryObject.query);
+      const queryObject = buildQueryObject(searchParameters, this.properties, this.dataTypes);
+      query = this.queries.getAllQueryParam.replace('{0}', queryObject.query);
       values = queryObject.values;
     }
     return new Promise((res, rej) => {
-      client.execute(query, values, (err, result) => {
+      this.client.execute(query, values, (err, result) => {
         if (err) {
           rej(err);
         } else if (!result) {
@@ -27,9 +35,9 @@ function genericModelService(client, dataTypes, properties, queries) {
     });
   }
 
-  function getEntity(id) {
+  getEntity(id) {
     return new Promise((res, rej) => {
-      client.execute(queries.getQuery, [id], (err, result) => {
+      this.client.execute(this.queries.getQuery, [id], (err, result) => {
         if (err) {
           rej(err);
         } else if (!result) {
@@ -43,11 +51,11 @@ function genericModelService(client, dataTypes, properties, queries) {
     });
   }
 
-  function updateEntity(entity) {
+  updateEntity(entity, modifiedProps) {
     return new Promise((res, rej) => {
-      const queryObject = buildQueryObject(entity, properties, dataTypes);
-      const query = queries.updateQuery.replace('{0}', queryObject.query);
-      client.execute(query, queryObject.values, (e, result) => {
+      const queryObject = buildQueryObject(entity, modifiedProps || this.properties, this.dataTypes);
+      const query = this.queries.updateQuery.replace('{0}', queryObject.query);
+      this.client.execute(query, queryObject.values, (e, result) => {
         if (e) {
           rej(e);
         } else {
@@ -57,9 +65,9 @@ function genericModelService(client, dataTypes, properties, queries) {
     });
   }
 
-  function deleteEntity(entity) {
+  deleteEntity(entity) {
     return new Promise((res, rej) => {
-      client.execute(queries.deleteQuery, [entity.id], (err, result) => {
+      this.client.execute(this.queries.deleteQuery, [entity.id], (err, result) => {
         if (err) {
           rej(err);
         } else {
@@ -69,15 +77,17 @@ function genericModelService(client, dataTypes, properties, queries) {
     });
   }
 
-  function createEntity(entity) {
+  createEntity(entity, props) {
     const entityToInsert = entity;
-    entityToInsert.id = entityToInsert.id || dataTypes.timeuuid();
+    entityToInsert.id = entityToInsert.id || this.dataTypes.timeuuid();
+    const propIndex = this.properties.findIndex(x => x.name === 'id');
+    props[propIndex].valueIsSet = true; // eslint-disable-line no-param-reassign
     return new Promise((res, rej) => {
-      const queryObject = buildQueryObject(entityToInsert, properties, dataTypes, true);
-      const query = queries.createQuery
+      const queryObject = buildQueryObject(entityToInsert, this.properties, this.dataTypes, true);
+      const query = this.queries.createQuery
         .replace('{0}', queryObject.query)
         .replace('{1}', queryObject.queryValue);
-      client.execute(query, queryObject.values, (err) => {
+      this.client.execute(query, queryObject.values, (err) => {
         if (err) {
           rej(err);
         } else {
@@ -97,9 +107,11 @@ function buildQueryObject(entity, properties, dataTypes, isCreate = false) {
   properties.forEach(x => {
     if ({}.hasOwnProperty.call(entity, x.name)) {
       const prop = entity[x.name];
-      queryObject.values.push(tryCast(prop, x.type, dataTypes));
-      queryObject.query += isCreate ? `${x.dbColumnName},` : `${x.dbColumnName}=?,`;
-      queryObject.queryValue += '?,';
+      if (x.valueIsSet) {
+        queryObject.values.push(tryCast(prop, x.type, dataTypes));
+        queryObject.query += isCreate ? `${x.dbColumnName},` : `${x.dbColumnName}=?,`;
+        queryObject.queryValue += '?,';
+      }
     }
   });
 
@@ -111,13 +123,13 @@ function buildQueryObject(entity, properties, dataTypes, isCreate = false) {
 
 function tryCast(value, type, dataTypes) {
   switch (type) {
-    case dataTypes.boolean:
-      return String(value).trim().toLowerCase() === 'true';
-    case dataTypes.phoneNumber:
+    case 'phoneNumber':
       return parsePhoneNumber(value);
-    case dataTypes.money:
-    case dataTypes.timeuuid:
-    case dataTypes.string:
+    case dataTypes.dataTypes.boolean:
+      return String(value).trim().toLowerCase() === 'true';
+    case dataTypes.dataTypes.decimal:
+    case dataTypes.dataTypes.timeuuid:
+    case dataTypes.dataTypes.text:
     default:
       return String(value).trim();
   }
@@ -132,4 +144,4 @@ function parsePhoneNumber(number) {
   return parseInt(num, 10);
 }
 
-export default genericModelService;
+export default GenericModelService;

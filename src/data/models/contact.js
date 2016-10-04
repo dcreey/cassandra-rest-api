@@ -10,11 +10,11 @@ const queries = {
 
 function contactModel(client, dataTypes, ModelBuilder) {
   const properties = [
-    { name: 'id', dbColumnName: 'id', type: dataTypes.timeuuid },
-    { name: 'firstName', dbColumnName: 'first_name', type: dataTypes.string },
-    { name: 'lastName', dbColumnName: 'last_name', type: dataTypes.string },
-    { name: 'email', dbColumnName: 'email', type: dataTypes.int },
-    { name: 'phoneNumber', dbColumnName: 'phone_number', type: dataTypes.string },
+    { name: 'id', dbColumnName: 'id', type: dataTypes.dataTypes.timeuuid },
+    { name: 'firstName', dbColumnName: 'first_name', type: dataTypes.dataTypes.text },
+    { name: 'lastName', dbColumnName: 'last_name', type: dataTypes.dataTypes.text },
+    { name: 'email', dbColumnName: 'email', type: dataTypes.dataTypes.int },
+    { name: 'phoneNumber', dbColumnName: 'phone_number', type: 'phoneNumber' },
   ];
 
   // build base model

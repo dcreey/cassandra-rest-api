@@ -1,24 +1,34 @@
 /**
  * Created by dcreey on 9/30/2016.
  */
+/* eslint-disable no-use-before-define */
 
 import Promise from 'bluebird';
+import 'proxy-polyfill';
 
-function createGenericModel(modelName, properties, genericModelService) {
+function createGenericModel(_modelName, _properties, _genericModelService) {
+  const modelName = _modelName;
+  const properties = _properties;
+  const genericModelService = _genericModelService;
+
   class Model {
     constructor(entity) {
       // convert passed entity to js object
-      if (entity) {
-        properties.forEach(x => {
+      this.properties = properties;
+      this.properties.forEach((x, i) => {
+        let value = '';
+        if (entity) {
           if ({}.hasOwnProperty.call(entity, x.name)) {
             // pass property through
-            this[x.name] = entity[x.name] || '';
+            value = entity[x.name];
           } else if ({}.hasOwnProperty.call(entity, x.dbColumnName)) {
             // convert db object to js object
-            this[x.name] = entity[x.dbColumnName] || '';
+            value = entity[x.dbColumnName];
+            this.properties[i].valueIsSet = true;
           }
-        });
-      }
+        }
+        this[x.name] = value || '';
+      });
     }
 
     // static methods
@@ -26,7 +36,7 @@ function createGenericModel(modelName, properties, genericModelService) {
       return new Promise((res) => {
         genericModelService.getAllEntities(searchParameters).then((result) => {
           if (result) {
-            res(result.map(x => new Model(x)));
+            res(result.map(x => new ModelProxy(x)));
           } else {
             res(null);
           }
@@ -38,7 +48,7 @@ function createGenericModel(modelName, properties, genericModelService) {
       return new Promise((res) => {
         genericModelService.getAllEntities(searchParameters).then((result) => {
           if (result) {
-            res(result.map(x => (new Model(x)).toJson()));
+            res(result.map(x => (new ModelProxy(x)).toJson()));
           } else {
             res(null);
           }
@@ -50,7 +60,7 @@ function createGenericModel(modelName, properties, genericModelService) {
       return new Promise((res) => {
         genericModelService.getEntity(id).then((result) => {
           if (result) {
-            res(new Model(result));
+            res(new ModelProxy(result));
           } else {
             res(null);
           }
@@ -63,8 +73,8 @@ function createGenericModel(modelName, properties, genericModelService) {
       return new Promise((res, rej) => {
         genericModelService.getEntity(this.id).then((entity) => {
           if (entity) {
-            genericModelService.updateEntity(this).then((updateResult) => {
-              res(updateResult);
+            genericModelService.updateEntity(this, this.properties).then((updateResult) => {
+              res(new ModelProxy(updateResult));
             });
           }
         });
@@ -75,14 +85,14 @@ function createGenericModel(modelName, properties, genericModelService) {
       return new Promise((res, rej) => {
         genericModelService.deleteEntity(this).then((result) => {
           if (result) console.log(`Deleted ${modelName} with id ${result.id}`);
-          res(result);
+          res(new ModelProxy(result));
         });
       });
     }
 
     create() {
       return new Promise((res, rej) => {
-        genericModelService.createEntity(this).then((result) => {
+        genericModelService.createEntity(this, this.properties).then((result) => {
           if (result) console.log(`Inserted ${modelName} with id ${result.id}`);
           res(result);
         });
@@ -92,7 +102,7 @@ function createGenericModel(modelName, properties, genericModelService) {
     toJson() {
       const jsonObject = {};
 
-      properties.forEach(x => {
+      this.properties.forEach(x => {
         jsonObject[x.name] = this[x.name];
       });
 
@@ -100,7 +110,27 @@ function createGenericModel(modelName, properties, genericModelService) {
     }
   }
 
-  return Model;
+  // Create proxy of Model with dynamic getters and setters
+  const ModelProxy = new Proxy(Model, {
+    get: (target, name) => {
+      if (!(name in target)) {
+        return undefined;
+      }
+      return target[name];
+    },
+    set: (target, name, value) => {
+      const propIndex = target.properties.findIndex(x => x.name === name);
+      if (propIndex > -1) {
+        target[name] = value; // eslint-disable-line no-param-reassign
+        target.properties[propIndex].valueIsSet = true; // eslint-disable-line no-param-reassign
+      }
+
+      return true;
+    },
+  })
+
+  // return proxy of model
+  return ModelProxy;
 }
 
 export default createGenericModel;

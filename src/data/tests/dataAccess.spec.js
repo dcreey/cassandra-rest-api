@@ -4,14 +4,14 @@
 /* eslint-disable prefer-arrow-callback */
 
 import assert from 'assert';
-import db from '../dataAccess';
+import dataAccess from '../dataAccess';
 
 describe('test database access object', function () {
   it('Should have a cassandra client property', function () {
-    assert.ok(db.cassandraClient);
+    assert.ok(dataAccess.cassandraClient);
   });
 
   it('Should have a contact property', function () {
-    assert.ok(db.contact);
+    assert.ok(dataAccess.Contact);
   });
 });

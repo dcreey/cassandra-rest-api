@@ -2,6 +2,7 @@
  * Created by dcreey on 9/30/2016.
  */
 /* eslint-disable prefer-arrow-callback */
+/* eslint-disable max-len */
 
 const assert = require('assert');
 const cassandra = require('cassandra-driver');
@@ -13,13 +14,13 @@ const genericModelService = {
   updateEntity: () => null,
   deleteEntity: () => null,
   createEntity: () => null,
-}
+};
 
 const modelName = 'MockEntity';
 const types = cassandra.types;
 const properties = [
-  { name: 'id', dbColumnName: 'id', type: types.timeuuid },
-  { name: 'companyName', dbColumnName: 'company_name', type: types.string },
+  { name: 'id', dbColumnName: 'id', type: types.dataTypes.timeuuid },
+  { name: 'companyName', dbColumnName: 'company_name', type: types.dataTypes.text },
 ];
 const entities = [
   { id: types.timeuuid(), companyName: 'Company1' },
@@ -70,21 +71,18 @@ describe('test generic model class with mock entity', function () {
     });
   });
 
-  //////////////
-  //////////////
-  //////////////
   describe('test get mock entity by id', function () {
     it('Should return entity and map to js model', function (done) {
-      client.execute = (query, values, cb) => { cb(null, { rows: [dbEntities.rows[0]] }); };
-      const MockEntity = createGenericModel(modelName, queries, properties, client, types);
+      genericModelService.getEntity = () => new Promise((res) => { res(dbEntities.rows[0]); });
+      const MockEntity = createGenericModel(modelName, properties, genericModelService);
       MockEntity.getById().then((entity) => {
-        assert.deepEqual(entity.toJson(), entities[0])
+        assert.deepEqual(entity.toJson(), entities[0]);
         done();
       });
     });
     it('Should return null when no contact found', function (done) {
-      client.execute = (query, values, cb) => { cb(null, null); };
-      const MockEntity = createGenericModel(modelName, queries, properties, client, types);
+      genericModelService.getEntity = () => new Promise((res) => { res(null); });
+      const MockEntity = createGenericModel(modelName, properties, genericModelService);
       MockEntity.getById().then((entity) => {
         assert.ok(entity == null);
         done();
@@ -92,25 +90,69 @@ describe('test generic model class with mock entity', function () {
     });
   });
 
-  describe('test update mock entity by id', function () {
-    it('Should return entity with update function', function (done) {
-      client.execute = (query, values, cb) => { cb(null, { rows: [dbEntities.rows[0]] }); };
-      const MockEntity = createGenericModel(modelName, queries, properties, client, types);
-      MockEntity.getById().then((entity) => {
-        assert.ok(entity.update);
+  describe('should create a new entity with passed entity property values', function () {
+    it('Model passed entity property values should have those values', function (done) {
+      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      const entity = new MockEntity(entities[0]);
+      assert(entity.id === entities[0].id);
+      assert(entity.companyName === entities[0].companyName);
+      done();
+    });
+    it('Model passed null should have model properties', function (done) {
+      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      const entity = new MockEntity();
+      assert({}.hasOwnProperty.call(entity, 'id'));
+      assert({}.hasOwnProperty.call(entity, 'companyName'));
+      done();
+    });
+  });
+
+  describe('test update mock entity', function () {
+    it('Should return updated entity with property valueIsSet value of true for companyName property', function (done) {
+      const updatedEntity = entities[0];
+      updatedEntity.companyName = 'NewCompanyName';
+      genericModelService.getEntity = () => new Promise((res) => { res(dbEntities.rows[0]); });
+      genericModelService.updateEntity = (uEntity, props) => new Promise((res) => {
+        const propIndex = props.findIndex(x => x.name === 'companyName');
+        assert(props[propIndex].valueIsSet);
+        res(uEntity);
+      });
+      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      const entity = new MockEntity(entities[0]);
+      entity.companyName = 'NewCompanyName';
+      entity.update().then((uEntity) => {
+        assert(uEntity.companyName === updatedEntity.companyName);
         done();
       });
     });
-    it('Should pass array of parameters to update to execute method', function (done) {
-      client.execute = (query, values, cb) => {
-        cb(null, null);
-      };
-      const MockEntity = createGenericModel(modelName, queries, properties, client, types);
-      MockEntity.getById().then((entity) => {
-        client.prototype.execute = (query, values, cb) => {
-          cb(null, null);
-        };
-        assert.ok(entity == null);
+  });
+
+  describe('test delete mock entity', function () {
+    it('Should return deleted entity', function (done) {
+      genericModelService.getEntity = () => new Promise((res) => { res(dbEntities.rows[0]); });
+      genericModelService.deleteEntity = (uEntity) => new Promise((res) => {
+        res(uEntity);
+      });
+      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      const entity = new MockEntity(entities[0]);
+      entity.companyName = 'NewCompanyName';
+      entity.delete().then((uEntity) => {
+        assert.deepEqual(uEntity.toJson(), entities[0]);
+        done();
+      });
+    });
+  });
+
+  describe('test create mock entity', function () {
+    it('Should return updated entity', function (done) {
+      genericModelService.getEntity = () => new Promise((res) => { res(dbEntities.rows[0]); });
+      genericModelService.createEntity = (uEntity) => new Promise((res) => {
+        res(uEntity);
+      });
+      const MockEntity = createGenericModel(modelName, properties, genericModelService);
+      const entity = new MockEntity(entities[0]);
+      entity.create().then((uEntity) => {
+        assert.deepEqual(uEntity.toJson(), entities[0]);
         done();
       });
     });

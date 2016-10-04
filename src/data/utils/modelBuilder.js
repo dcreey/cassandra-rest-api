@@ -2,7 +2,7 @@
  * Created by dcreey on 9/29/2016.
  */
 const createGenericModel = require('./genericModel');
-const modelService = require('./genericModelService');
+const ModelService = require('./genericModelService');
 
 function createModelBuilder(client, dataTypes) {
   return class ModelBuilder {
@@ -20,7 +20,7 @@ function createModelBuilder(client, dataTypes) {
     }
 
     getModel() {
-      const service = modelService(client, dataTypes, this.properties, this.queries);
+      const service = new ModelService(client, dataTypes, this.properties, this.queries);
       return createGenericModel(this.modelName, this.properties, service);
     }
   };
