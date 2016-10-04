@@ -64,15 +64,4 @@ const serverConfig = extend(true, {}, config, {
   },
 });
 
-//
-// Configuration for the server-side mocha testing bundle (test.server.js)
-// -----------------------------------------------------------------------------
-
-const mochaConfig = extend(true, {}, config, {
-  output: {
-    filename: 'test.server.js',
-    path: 'build/',
-  },
-});
-
-export default [serverConfig, mochaConfig];
+export default [serverConfig];
